@@ -96,8 +96,10 @@ window.addEventListener('load', function () {
         }
 
         shootTop() {
-            this.projectiles.push(new Projectile(this.game, this.x, this.y));
-            console.log(this.projectiles);
+            if (this.game.ammo > 0) {
+                this.projectiles.push(new Projectile(this.game, this.x + 80, this.y));
+                this.game.ammo--;
+            }
         }
     }
 
@@ -116,6 +118,7 @@ window.addEventListener('load', function () {
             this.player = new Player(this);
             this.input = new InputHandler(this);
             this.keys = [];
+            this.ammo = 20;
         }
 
         update() {
