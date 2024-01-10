@@ -9,7 +9,7 @@ window.addEventListener('load', function () {
         constructor(game) {
             this.game = game;
             window.addEventListener('keydown', e => {
-                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) &&
+                if (['w', 's', 'a', 'd'].includes(e.key) &&
                     this.game.keys.indexOf(e.key) === -1) {
                     this.game.keys.push(e.key);
                 } else if (e.key === ' ') {
@@ -62,12 +62,12 @@ window.addEventListener('load', function () {
         }
 
         update() {
-            if (this.game.keys.includes('ArrowUp')) this.speedY = -this.maxSpeed;
-            else if (this.game.keys.includes('ArrowDown')) this.speedY = this.maxSpeed;
+            if (this.game.keys.includes('w')) this.speedY = -this.maxSpeed;
+            else if (this.game.keys.includes('s')) this.speedY = this.maxSpeed;
             else this.speedY = 0;
 
-            if (this.game.keys.includes('ArrowLeft')) this.speedX = -this.maxSpeed;
-            else if (this.game.keys.includes('ArrowRight')) this.speedX = this.maxSpeed;
+            if (this.game.keys.includes('a')) this.speedX = -this.maxSpeed;
+            else if (this.game.keys.includes('d')) this.speedX = this.maxSpeed;
             else this.speedX = 0;
 
             // Update player position
@@ -109,7 +109,21 @@ window.addEventListener('load', function () {
 
     class Background { }
 
-    class UI { }
+    class UI {
+        constructor(game) {
+            this.game = game;
+            this.fontSize = 25;
+            this.fontFamily = 'Helvetica';
+            this.color = 'white';
+        }
+        draw(context) {
+            //ammo
+            context.fillStyle = this.color;
+            for (let i = 0; i < this.game.ammo; i++) {
+                context.fillRect(20 + 5 * i, 50, 3, 20);
+            }
+        }
+    }
 
     class Game {
         constructor(width, height) {
@@ -117,27 +131,41 @@ window.addEventListener('load', function () {
             this.height = height;
             this.player = new Player(this);
             this.input = new InputHandler(this);
+            this.ui = new UI(this);
             this.keys = [];
             this.ammo = 20;
+            this.maxAmmo = 50;
+            this.ammoTimer = 0;
+            this.ammoInterval = 500;
         }
 
-        update() {
+        update(deltaTime) {
             this.player.update();
+            if (this.ammoTimer > this.ammoInterval) {
+                if (this.ammo < this.maxAmmo) this.ammo++;
+                this.ammoTimer = 0;
+            } else {
+                this.ammoTimer += deltaTime;
+            }
         }
 
         draw(context) {
             this.player.draw(context);
+            this.ui.draw(context);
         }
     }
 
     const game = new Game(canvas.width, canvas.height);
+    let lastTime = 0;
     //animate loop
-    function animate() {
+    function animate(timeStamp) {
+        const deltaTime = timeStamp - lastTime;
+        lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        game.update();
+        game.update(deltaTime);
         game.draw(ctx);
         requestAnimationFrame(animate);
     }
 
-    animate();
+    animate(0);
 });
