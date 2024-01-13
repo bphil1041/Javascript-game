@@ -120,7 +120,9 @@ window.addEventListener('load', function () {
             context.fillStyle = 'red';
             context.fillRect(this.x, this.y, this.width, this.height);
             context.fillStyle = 'black';
+            context.font = '20 Helvetica';
             context.fillText(this.lives, this.x, this.y);
+
         }
     }
 
