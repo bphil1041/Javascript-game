@@ -178,6 +178,9 @@ window.addEventListener('load', function () {
             }
             this.enemies.forEach(enemy => {
                 enemy.update();
+                if (this.checkCollision(this.player, enemy)) {
+                    enemy.markedForDeletion = true;
+                }
             });
             this.enemies = this.enemies.filter(enemy => !enemy.markedForDeletion);
             if (this.enemyTimer > this.enemyInterval && !this.gameOver) {
@@ -197,6 +200,14 @@ window.addEventListener('load', function () {
         }
         addEnemy() {
             this.enemies.push(new Angler1(this));
+        }
+        checkCollision(rect1, rect2) {
+            return (
+                rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y
+            );
         }
     }
 
