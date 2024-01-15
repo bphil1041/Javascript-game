@@ -21,6 +21,7 @@ window.addEventListener('load', function () {
                     this.game.keys.splice(this.game.keys.indexOf(e.key), 1);
                 }
             });
+
         }
     }
 
@@ -51,8 +52,8 @@ window.addEventListener('load', function () {
     class Player {
         constructor(game) {
             this.game = game;
-            this.width = 120;
-            this.height = 190;
+            this.width = 50;
+            this.height = 75;
             this.x = 20;
             this.y = 100;
             this.speedX = 0;
@@ -97,7 +98,7 @@ window.addEventListener('load', function () {
 
         shootTop() {
             if (this.game.ammo > 0) {
-                this.projectiles.push(new Projectile(this.game, this.x + 80, this.y));
+                this.projectiles.push(new Projectile(this.game, this.x + 30, this.y));
                 this.game.ammo--;
             }
         }
@@ -109,7 +110,7 @@ window.addEventListener('load', function () {
             this.x = this.game.width;
             this.speedX = Math.random() * -1.5 - 0.5;
             this.markedForDeletion = false;
-            this.lives = 5;
+            this.lives = 3;
             this.score = this.lives;
         }
         update() {
@@ -148,11 +149,19 @@ window.addEventListener('load', function () {
             this.color = 'white';
         }
         draw(context) {
-            //ammo
+            context.save();
             context.fillStyle = this.color;
+            context.shadowOffsetX = 2;
+            context.shadowOffsetY = 2;
+            context.shadowColor = 'black';
+            context.font = this.fontSize + 'px ' + this.fontFamily;
+            //score
+            context.fillText('Score: ' + this.game.score, 20, 40);
+            //ammo
             for (let i = 0; i < this.game.ammo; i++) {
                 context.fillRect(20 + 5 * i, 50, 3, 20);
             }
+            context.restore();
         }
     }
 
@@ -172,6 +181,8 @@ window.addEventListener('load', function () {
             this.ammoTimer = 0;
             this.ammoInterval = 500;
             this.gameOver = false;
+            this.score = 0;
+            this.winningScore = 10;
         }
 
         update(deltaTime) {
@@ -194,6 +205,7 @@ window.addEventListener('load', function () {
                         if (enemy.lives <= 0) {
                             enemy.markedForDeletion = true;
                             this.score += enemy.score;
+                            if (this.score > this.winningScore) this.gameOver = true;
                         }
                     }
                 })
