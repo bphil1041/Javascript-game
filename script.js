@@ -8,6 +8,8 @@ window.addEventListener('load', function () {
     class InputHandler {
         constructor(game) {
             this.game = game;
+            this.game.isFiring = false; // New property to track whether the player is firing
+
             window.addEventListener('keydown', e => {
                 if (['w', 's', 'a', 'd'].includes(e.key) &&
                     this.game.keys.indexOf(e.key) === -1) {
@@ -21,25 +23,55 @@ window.addEventListener('load', function () {
                 }
             });
 
-            // Listen for left-click event
-            window.addEventListener('click', e => {
-                this.game.player.shootTop(e.clientX, e.clientY);
+            window.addEventListener('mousedown', e => {
+                this.game.isFiring = true;
+                this.fireProjectiles(e.clientX, e.clientY);
             });
 
-            // Listen for mouse movement to update player aiming
+            window.addEventListener('mouseup', () => {
+                this.game.isFiring = false;
+            });
+
             window.addEventListener('mousemove', e => {
                 this.game.player.updateAim(e.clientX, e.clientY);
             });
         }
+
+        fireProjectiles(mouseX, mouseY) {
+            if (this.game.ammo > 0) {
+                const projectileSpeed = 15;
+                const canvasRect = canvas.getBoundingClientRect();
+                const adjustedMouseX = mouseX - canvasRect.left;
+                const adjustedMouseY = mouseY - canvasRect.top - this.game.player.height / 2;
+
+                const angle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
+                this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 2, this.game.player.y + this.game.player.height / 2, angle, projectileSpeed));
+                this.game.ammo--;
+
+                if (this.game.isFiring) {
+                    // Calculate the new angle based on the current mouse position
+                    const newAngle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
+
+                    // Update the angle for the last projectile (most recent one)
+                    const lastProjectile = this.game.player.projectiles[this.game.player.projectiles.length - 1];
+                    lastProjectile.angle = newAngle;
+
+                    // Continue firing while the mouse button is held down
+                    setTimeout(() => this.fireProjectiles(mouseX, mouseY), 100); // Adjust the firing rate if needed
+                }
+            }
+        }
     }
+
 
     class Projectile {
         constructor(game, x, y, angle, speed) {
             this.game = game;
             this.x = x;
             this.y = y;
-            this.width = 10;
-            this.height = 3;
+            this.angle = angle; // Store the angle for later use
+            this.width = 50;
+            this.height = 10;
             this.speedX = Math.cos(angle) * speed;
             this.speedY = Math.sin(angle) * speed;
             this.markedForDeletion = false;
@@ -48,13 +80,19 @@ window.addEventListener('load', function () {
         update() {
             this.x += this.speedX;
             this.y += this.speedY;
-            if (this.x > this.game.width * 0.9 || this.y < 0 || this.y > this.game.height) {
+            if (this.x > this.game.width * 0.99 || this.y < 0 || this.y > this.game.height) {
                 this.markedForDeletion = true;
             }
         }
 
         draw(context) {
-            context.fillStyle = 'yellow';
+            // Create a fiery radial gradient
+            const gradient = context.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.width);
+            gradient.addColorStop(0, 'rgba(255, 165, 0, 1)'); // Orange
+            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');   // Transparent red
+
+            // Draw the projectile with the fiery gradient
+            context.fillStyle = gradient;
             context.fillRect(this.x, this.y, this.width, this.height);
         }
     }
@@ -161,7 +199,7 @@ window.addEventListener('load', function () {
             this.ammo = 20;
             this.maxAmmo = 50;
             this.ammoTimer = 0;
-            this.ammoInterval = 500;
+            this.ammoInterval = 150;
             this.gameOver = false;
             this.score = 0;
             this.winningScore = 10;
