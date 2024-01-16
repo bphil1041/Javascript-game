@@ -8,5 +8,6 @@ A basic JavaScript game following a FreeCodeCamp tutorial (with some liberties t
 2. Left - A
 3. Down - S
 4. Right - D
-5. Fire - Space Bar
+5. Aim - Mouse Cursor
+6. Fire - Left Click
 
