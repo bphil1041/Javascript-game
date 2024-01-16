@@ -63,7 +63,6 @@ window.addEventListener('load', function () {
         }
     }
 
-
     class Projectile {
         constructor(game, x, y, angle, speed) {
             this.game = game;
@@ -96,6 +95,8 @@ window.addEventListener('load', function () {
             context.fillRect(this.x, this.y, this.width, this.height);
         }
     }
+
+    class Particle { }
 
     class Player {
         constructor(game) {
@@ -185,6 +186,88 @@ window.addEventListener('load', function () {
         }
     }
 
+
+    class Enemy {
+        constructor(game) {
+            this.game = game;
+            this.x = this.game.width;
+            this.speedX = Math.random() * -1.5 - 0.5;
+            this.markedForDeletion = false;
+            this.lives = 3;
+            this.score = this.lives;
+        }
+
+        update() {
+            this.x += this.speedX;
+            if (this.x + this.width < 0) this.markedForDeletion = true;
+        }
+
+        draw(context) {
+            context.fillStyle = 'red';
+            context.fillRect(this.x, this.y, this.width, this.height);
+            context.fillStyle = 'black';
+            context.font = '20 Helvetica';
+            context.fillText(this.lives, this.x, this.y);
+        }
+    }
+
+    class Angler1 extends Enemy {
+        constructor(game) {
+            super(game);
+            //dimensions of enemy sprite
+            this.width = 228 * 0.2;
+            this.height = 169 * 0.2;
+            this.y = Math.random() * (this.game.height * 0.9 - this.height);
+        }
+    }
+
+    class Layer { }
+
+    class Background { }
+
+    class UI {
+        constructor(game) {
+            this.game = game;
+            this.fontSize = 25;
+            this.fontFamily = 'Helvetica';
+            this.color = 'white';
+        }
+
+        draw(context) {
+            context.save();
+            context.fillStyle = this.color;
+            context.shadowOffsetX = 2;
+            context.shadowOffsetY = 2;
+            context.shadowColor = 'black';
+            context.font = this.fontSize + 'px ' + this.fontFamily;
+            //score
+            context.fillText('Score: ' + this.game.score, 20, 40);
+            //ammo
+            for (let i = 0; i < this.game.ammo; i++) {
+                context.fillRect(20 + 5 * i, 50, 3, 20);
+            }
+            //game over messages
+            if (this.game.gameOver) {
+                context.textAlign = 'center'; // Fix typo: '=' instead of '='
+                let message1;
+                let message2;
+                if (this.game.score > this.game.winningScore) {
+                    message1 = 'Victory!';
+                    message2 = 'Congratulations!';
+                } else {
+                    message1 = 'Defeat!';
+                    message2 = 'Dare to try again?';
+                }
+                context.font = '50px ' + this.fontFamily;
+                context.fillText(message1, this.game.width * 0.5, this.game.height * 0.5 - 40);
+                context.font = '25px ' + this.fontFamily;
+                context.fillText(message2, this.game.width * 0.5, this.game.height * 0.5 + 40);
+            }
+
+            context.restore();
+        }
+    }
+
     class Game {
         constructor(width, height) {
             this.width = width;
@@ -261,86 +344,8 @@ window.addEventListener('load', function () {
         }
     }
 
-    class UI {
-        constructor(game) {
-            this.game = game;
-            this.fontSize = 25;
-            this.fontFamily = 'Helvetica';
-            this.color = 'white';
-        }
-
-        draw(context) {
-            context.save();
-            context.fillStyle = this.color;
-            context.shadowOffsetX = 2;
-            context.shadowOffsetY = 2;
-            context.shadowColor = 'black';
-            context.font = this.fontSize + 'px ' + this.fontFamily;
-            //score
-            context.fillText('Score: ' + this.game.score, 20, 40);
-            //ammo
-            for (let i = 0; i < this.game.ammo; i++) {
-                context.fillRect(20 + 5 * i, 50, 3, 20);
-            }
-            //game over messages
-            if (this.game.gameOver) {
-                context.textAlign - 'center';
-                let message1;
-                let message2;
-                if (this.game.score > this.game.winningScore) {
-                    message1 = 'Victory!';
-                    message2 = 'Congratulations!';
-                } else {
-                    message1 = 'Defeat!';
-                    message2 = 'Dare to try again?';
-                }
-                context.font = '50px ' + this.fontFamily;
-                context.fillText(message1, this.game.width * 0.5, this.game.height * 0.5 - 40);
-                context.font = '25px ' + this.fontFamily;
-                context.fillText(message2, this.game.width * 0.5, this.game.height * 0.5 + 40);
-            }
-
-            context.restore();
-        }
-    }
-
-    class Enemy {
-        constructor(game) {
-            this.game = game;
-            this.x = this.game.width;
-            this.speedX = Math.random() * -1.5 - 0.5;
-            this.markedForDeletion = false;
-            this.lives = 3;
-            this.score = this.lives;
-        }
-
-        update() {
-            this.x += this.speedX;
-            if (this.x + this.width < 0) this.markedForDeletion = true;
-        }
-
-        draw(context) {
-            context.fillStyle = 'red';
-            context.fillRect(this.x, this.y, this.width, this.height);
-            context.fillStyle = 'black';
-            context.font = '20 Helvetica';
-            context.fillText(this.lives, this.x, this.y);
-        }
-    }
-
-    class Angler1 extends Enemy {
-        constructor(game) {
-            super(game);
-            //dimensions of enemy sprite
-            this.width = 228 * 0.2;
-            this.height = 169 * 0.2;
-            this.y = Math.random() * (this.game.height * 0.9 - this.height);
-        }
-    }
-
     const game = new Game(canvas.width, canvas.height);
     let lastTime = 0;
-
     //animate loop
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
@@ -351,7 +356,6 @@ window.addEventListener('load', function () {
         requestAnimationFrame(animate);
     }
 
-    const inputHandler = new InputHandler(game);
 
     animate(0);
 });
