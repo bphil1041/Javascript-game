@@ -73,7 +73,6 @@ window.addEventListener('load', function () {
             }, 50); // Adjust the firing rate if needed
         }
 
-        // Updated method to handle jump
         handleJump() {
             if (this.game.player.remainingJumps > 0) {
                 this.game.player.speedY = this.game.player.jumpHeight;
@@ -87,6 +86,7 @@ window.addEventListener('load', function () {
             }
         }
     }
+
 
 
 
@@ -140,9 +140,6 @@ window.addEventListener('load', function () {
             this.aimDirection = 0;
             this.maxJumps = 1;
             this.remainingJumps = this.maxJumps; // New property for double jump
-            this.wallJumpEnabled = true;
-            this.wallJumpCooldown = 1000;
-            this.lastWallJumpTime = 0;
         }
 
         update() {
@@ -152,8 +149,6 @@ window.addEventListener('load', function () {
                     this.speedY = this.jumpHeight;
                     this.isJumping = true;
                     this.remainingJumps--;
-                } else if (this.wallJumpEnabled && Date.now() - this.lastWallJumpTime >= this.wallJumpCooldown) {
-                    this.handleWallJump();
                 }
             }
 
@@ -204,23 +199,11 @@ window.addEventListener('load', function () {
             this.aimDirection = Math.atan2(mouseY - (this.y + this.height / 2), mouseX - (this.x + this.width / 2));
         }
 
-        handleWallJump() {
-            const isTouchingLeftWall = this.x <= 0;
-            const isTouchingRightWall = this.x >= canvas.width - this.width;
-
-            if ((isTouchingLeftWall || isTouchingRightWall) && Date.now() - this.lastWallJumpTime >= this.wallJumpCooldown) {
-                this.speedY = this.jumpHeight;
-                this.speedX = isTouchingLeftWall ? this.maxSpeed : -this.maxSpeed;
-                this.lastWallJumpTime = Date.now();
-                this.wallJumpEnabled = false;
-                this.resetDoubleJump();
-            }
-        }
-
         resetDoubleJump() {
             this.remainingJumps = this.maxJumps;
         }
     }
+
 
 
     class Enemy {
