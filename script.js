@@ -3,12 +3,13 @@ window.addEventListener('load', function () {
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
     canvas.width = 1500;
-    canvas.height = 500;
+    canvas.height = 750;
 
     class InputHandler {
         constructor(game) {
             this.game = game;
             this.game.isFiring = false; // New property to track whether the player is firing
+            this.continuousFireInterval = null; // New property to store the interval for continuous firing
 
             window.addEventListener('keydown', e => {
                 if (['w', 's', 'a', 'd'].includes(e.key) &&
@@ -26,19 +27,25 @@ window.addEventListener('load', function () {
             window.addEventListener('mousedown', e => {
                 this.game.isFiring = true;
                 this.fireProjectiles(e.clientX, e.clientY);
+                // Start continuous firing
+                this.continuousFire();
             });
 
             window.addEventListener('mouseup', () => {
                 this.game.isFiring = false;
+                // Stop continuous firing
+                clearInterval(this.continuousFireInterval);
             });
 
             window.addEventListener('mousemove', e => {
                 this.game.player.updateAim(e.clientX, e.clientY);
+                this.game.input.mouseX = e.clientX; // Update mouseX in the game input
+                this.game.input.mouseY = e.clientY; // Update mouseY in the game input
             });
         }
 
         fireProjectiles(mouseX, mouseY) {
-            if (this.game.ammo > 0) {
+            if (this.game.ammo > 0 && this.game.isFiring) {
                 const projectileSpeed = 15;
                 const canvasRect = canvas.getBoundingClientRect();
                 const adjustedMouseX = mouseX - canvasRect.left;
@@ -47,21 +54,19 @@ window.addEventListener('load', function () {
                 const angle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
                 this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 2, this.game.player.y + this.game.player.height / 2, angle, projectileSpeed));
                 this.game.ammo--;
-
-                if (this.game.isFiring) {
-                    // Calculate the new angle based on the current mouse position
-                    const newAngle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
-
-                    // Update the angle for the last projectile (most recent one)
-                    const lastProjectile = this.game.player.projectiles[this.game.player.projectiles.length - 1];
-                    lastProjectile.angle = newAngle;
-
-                    // Continue firing while the mouse button is held down
-                    setTimeout(() => this.fireProjectiles(mouseX, mouseY), 100); // Adjust the firing rate if needed
-                }
             }
         }
+
+        continuousFire() {
+            // Continuous firing at a fixed rate
+            this.continuousFireInterval = setInterval(() => {
+                this.fireProjectiles(this.game.input.mouseX, this.game.input.mouseY);
+            }, 50); // Adjust the firing rate if needed
+        }
     }
+
+
+
 
     class Projectile {
         constructor(game, x, y, angle, speed) {
@@ -163,29 +168,29 @@ window.addEventListener('load', function () {
                 projectile.draw(context);
             });
         }
-
         // New method to update player's aim direction based on mouse position
         updateAim(mouseX, mouseY) {
-            this.aimDirection = Math.atan2(mouseY - this.y, mouseX - this.x);
+            this.aimDirection = Math.atan2(mouseY - (this.y + this.height / 2), mouseX - (this.x + this.width / 2));
         }
 
         // Modify shootTop to fire projectiles directly at the mouse cursor
-        shootTop(mouseX, mouseY) {
+        shootTop() {
             if (this.game.ammo > 0) {
                 const projectileSpeed = 15;
 
-                // Adjust for the canvas position on the page
-                const canvasRect = canvas.getBoundingClientRect();
-                const adjustedMouseX = mouseX - canvasRect.left;
-                const adjustedMouseY = mouseY - canvasRect.top - this.height / 2; // Subtract half of the player's height
+                // Calculate the position of the player's center
+                const playerCenterX = this.x + this.width / 2;
+                const playerCenterY = this.y + this.height / 2;
 
-                const angle = Math.atan2(adjustedMouseY - this.y, adjustedMouseX - this.x);
-                this.projectiles.push(new Projectile(this.game, this.x + this.width / 2, this.y + this.height / 2, angle, projectileSpeed));
+                // Calculate the angle between the player's center and the mouse cursor
+                const angle = Math.atan2(this.game.input.mouseY - playerCenterY, this.game.input.mouseX - playerCenterX);
+
+                // Fire the projectile from the center of the player towards the mouse cursor
+                this.projectiles.push(new Projectile(this.game, playerCenterX, playerCenterY, angle, projectileSpeed));
                 this.game.ammo--;
             }
         }
     }
-
 
     class Enemy {
         constructor(game) {
@@ -268,6 +273,7 @@ window.addEventListener('load', function () {
         }
     }
 
+
     class Game {
         constructor(width, height) {
             this.width = width;
@@ -279,13 +285,13 @@ window.addEventListener('load', function () {
             this.enemies = [];
             this.enemyTimer = 0;
             this.enemyInterval = 1000;
-            this.ammo = 20;
-            this.maxAmmo = 50;
+            this.ammo = 50;
+            this.maxAmmo = 100;
             this.ammoTimer = 0;
-            this.ammoInterval = 150;
+            this.ammoInterval = 300;
             this.gameOver = false;
             this.score = 0;
-            this.winningScore = 10;
+            this.winningScore = 50;
         }
 
         update(deltaTime) {
