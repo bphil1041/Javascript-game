@@ -1,5 +1,5 @@
 window.addEventListener('load', function () {
-    //canvas setup
+    // Canvas setup
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
     canvas.width = 1500;
@@ -8,18 +8,22 @@ window.addEventListener('load', function () {
     class InputHandler {
         constructor(game) {
             this.game = game;
-            this.game.isFiring = false; // New property to track whether the player is firing
-            this.continuousFireInterval = null; // New property to store the interval for continuous firing
+            this.game.isFiring = false;
+            this.continuousFireInterval = null;
+            this.isJumping = false;
 
             window.addEventListener('keydown', e => {
-                if (['w', 's', 'a', 'd'].includes(e.key) &&
-                    this.game.keys.indexOf(e.key) === -1) {
+                if (e.key === 'w' && !this.isJumping) {
+                    this.handleJump();
+                } else if (['s', 'a', 'd'].includes(e.key) && this.game.keys.indexOf(e.key) === -1) {
                     this.game.keys.push(e.key);
                 }
             });
 
             window.addEventListener('keyup', e => {
-                if (this.game.keys.indexOf(e.key) > -1) {
+                if (e.key === 'w') {
+                    this.isJumping = false;
+                } else if (this.game.keys.indexOf(e.key) > -1) {
                     this.game.keys.splice(this.game.keys.indexOf(e.key), 1);
                 }
             });
@@ -54,6 +58,11 @@ window.addEventListener('load', function () {
                 const angle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
                 this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 2, this.game.player.y + this.game.player.height / 2, angle, projectileSpeed));
                 this.game.ammo--;
+
+                // Reset double jump count when player fires while on the ground
+                if (this.game.player.y >= canvas.height - this.game.player.height) {
+                    this.game.player.remainingJumps = this.game.player.maxJumps;
+                }
             }
         }
 
@@ -63,8 +72,21 @@ window.addEventListener('load', function () {
                 this.fireProjectiles(this.game.input.mouseX, this.game.input.mouseY);
             }, 50); // Adjust the firing rate if needed
         }
-    }
 
+        // Updated method to handle jump
+        handleJump() {
+            if (this.game.player.remainingJumps > 0) {
+                this.game.player.speedY = this.game.player.jumpHeight;
+                this.isJumping = true;
+                this.game.player.remainingJumps--;
+
+                // Reset double jump count when player is on the ground
+                if (this.game.player.y >= canvas.height - this.game.player.height) {
+                    this.game.player.remainingJumps = this.game.player.maxJumps;
+                }
+            }
+        }
+    }
 
 
 
@@ -73,7 +95,7 @@ window.addEventListener('load', function () {
             this.game = game;
             this.x = x;
             this.y = y;
-            this.angle = angle; // Store the angle for later use
+            this.angle = angle;
             this.width = 50;
             this.height = 10;
             this.speedX = Math.cos(angle) * speed;
@@ -90,12 +112,10 @@ window.addEventListener('load', function () {
         }
 
         draw(context) {
-            // Create a fiery radial gradient
             const gradient = context.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.width);
-            gradient.addColorStop(0, 'rgba(255, 165, 0, 1)'); // Orange
-            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');   // Transparent red
+            gradient.addColorStop(0, 'rgba(255, 165, 0, 1)');
+            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
 
-            // Draw the projectile with the fiery gradient
             context.fillStyle = gradient;
             context.fillRect(this.x, this.y, this.width, this.height);
         }
@@ -117,14 +137,24 @@ window.addEventListener('load', function () {
             this.gravity = 0.2;
             this.isJumping = false;
             this.jumpHeight = -10;
-            this.aimDirection = 0; // New property to store the aim direction
+            this.aimDirection = 0;
+            this.maxJumps = 1;
+            this.remainingJumps = this.maxJumps; // New property for double jump
+            this.wallJumpEnabled = true;
+            this.wallJumpCooldown = 1000;
+            this.lastWallJumpTime = 0;
         }
 
         update() {
             // Handle jumping mechanic
-            if (this.game.keys.includes('w') && !this.isJumping) {
-                this.speedY = this.jumpHeight;
-                this.isJumping = true;
+            if (this.game.keys.includes('w')) {
+                if (this.remainingJumps > 0 && !this.isJumping) {
+                    this.speedY = this.jumpHeight;
+                    this.isJumping = true;
+                    this.remainingJumps--;
+                } else if (this.wallJumpEnabled && Date.now() - this.lastWallJumpTime >= this.wallJumpCooldown) {
+                    this.handleWallJump();
+                }
             }
 
             // Apply gravity
@@ -150,6 +180,7 @@ window.addEventListener('load', function () {
             // Check if player is on the ground to allow jumping again
             if (this.y >= canvas.height - this.height) {
                 this.isJumping = false;
+                this.resetDoubleJump();
             }
 
             // Update projectiles
@@ -168,29 +199,29 @@ window.addEventListener('load', function () {
                 projectile.draw(context);
             });
         }
-        // New method to update player's aim direction based on mouse position
+
         updateAim(mouseX, mouseY) {
             this.aimDirection = Math.atan2(mouseY - (this.y + this.height / 2), mouseX - (this.x + this.width / 2));
         }
 
-        // Modify shootTop to fire projectiles directly at the mouse cursor
-        shootTop() {
-            if (this.game.ammo > 0) {
-                const projectileSpeed = 15;
+        handleWallJump() {
+            const isTouchingLeftWall = this.x <= 0;
+            const isTouchingRightWall = this.x >= canvas.width - this.width;
 
-                // Calculate the position of the player's center
-                const playerCenterX = this.x + this.width / 2;
-                const playerCenterY = this.y + this.height / 2;
-
-                // Calculate the angle between the player's center and the mouse cursor
-                const angle = Math.atan2(this.game.input.mouseY - playerCenterY, this.game.input.mouseX - playerCenterX);
-
-                // Fire the projectile from the center of the player towards the mouse cursor
-                this.projectiles.push(new Projectile(this.game, playerCenterX, playerCenterY, angle, projectileSpeed));
-                this.game.ammo--;
+            if ((isTouchingLeftWall || isTouchingRightWall) && Date.now() - this.lastWallJumpTime >= this.wallJumpCooldown) {
+                this.speedY = this.jumpHeight;
+                this.speedX = isTouchingLeftWall ? this.maxSpeed : -this.maxSpeed;
+                this.lastWallJumpTime = Date.now();
+                this.wallJumpEnabled = false;
+                this.resetDoubleJump();
             }
         }
+
+        resetDoubleJump() {
+            this.remainingJumps = this.maxJumps;
+        }
     }
+
 
     class Enemy {
         constructor(game) {
@@ -198,7 +229,7 @@ window.addEventListener('load', function () {
             this.x = this.game.width;
             this.speedX = Math.random() * -1.5 - 0.5;
             this.markedForDeletion = false;
-            this.lives = 3;
+            this.lives = 5;
             this.score = this.lives;
         }
 
@@ -219,7 +250,6 @@ window.addEventListener('load', function () {
     class Angler1 extends Enemy {
         constructor(game) {
             super(game);
-            //dimensions of enemy sprite
             this.width = 228 * 0.2;
             this.height = 169 * 0.2;
             this.y = Math.random() * (this.game.height * 0.9 - this.height);
@@ -245,15 +275,15 @@ window.addEventListener('load', function () {
             context.shadowOffsetY = 2;
             context.shadowColor = 'black';
             context.font = this.fontSize + 'px ' + this.fontFamily;
-            //score
+
             context.fillText('Score: ' + this.game.score, 20, 40);
-            //ammo
+
             for (let i = 0; i < this.game.ammo; i++) {
                 context.fillRect(20 + 5 * i, 50, 3, 20);
             }
-            //game over messages
+
             if (this.game.gameOver) {
-                context.textAlign = 'center'; // Fix typo: '=' instead of '='
+                context.textAlign = 'center';
                 let message1;
                 let message2;
                 if (this.game.score > this.game.winningScore) {
@@ -272,7 +302,6 @@ window.addEventListener('load', function () {
             context.restore();
         }
     }
-
 
     class Game {
         constructor(width, height) {
@@ -317,7 +346,7 @@ window.addEventListener('load', function () {
                             if (this.score > this.winningScore) this.gameOver = true;
                         }
                     }
-                })
+                });
             });
             this.enemies = this.enemies.filter(enemy => !enemy.markedForDeletion);
             if (this.enemyTimer > this.enemyInterval && !this.gameOver) {
@@ -352,7 +381,7 @@ window.addEventListener('load', function () {
 
     const game = new Game(canvas.width, canvas.height);
     let lastTime = 0;
-    //animate loop
+
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
@@ -361,7 +390,6 @@ window.addEventListener('load', function () {
         game.draw(ctx);
         requestAnimationFrame(animate);
     }
-
 
     animate(0);
 });
