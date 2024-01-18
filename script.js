@@ -265,6 +265,11 @@ window.addEventListener('load', function () {
                 context.fillRect(20 + 5 * i, 50, 3, 20);
             }
 
+            // Timer 
+            const formattedTime = (this.game.gameTime * 0.001).toFixed(1);
+            context.fillText('Timer: ' + formattedTime + 's', 20, 100);
+
+            // Game over messages
             if (this.game.gameOver) {
                 context.textAlign = 'center';
                 let message1;
@@ -274,7 +279,7 @@ window.addEventListener('load', function () {
                     message2 = 'Congratulations!';
                 } else {
                     message1 = 'Defeat!';
-                    message2 = 'Dare to try again?';
+                    message2 = 'Try again?';
                 }
                 context.font = '50px ' + this.fontFamily;
                 context.fillText(message1, this.game.width * 0.5, this.game.height * 0.5 - 40);
@@ -285,6 +290,9 @@ window.addEventListener('load', function () {
             context.restore();
         }
     }
+
+
+
 
     class Game {
         constructor(width, height) {
@@ -330,7 +338,7 @@ window.addEventListener('load', function () {
                         projectile.markedForDeletion = true;
                         if (enemy.lives <= 0) {
                             enemy.markedForDeletion = true;
-                            this.score += enemy.score;
+                            if (this.gameOver) this.score += enemy.score;
                             if (this.score > this.winningScore) this.gameOver = true;
                         }
                     }
