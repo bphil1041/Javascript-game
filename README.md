@@ -1,10 +1,10 @@
 # JavaScript Game
 
 ## Overview
-A basic JavaScript game following a FreeCodeCamp tutorial (with many liberties taken). So far, the player object can jump/double jump, move left and right, and can shoot projectiles. The player starts with an ammo count of 20, and ammo reloads over time. 
+A basic JavaScript game following a FreeCodeCamp tutorial (with many liberties taken). So far, the player object can jump/double jump/glide, move left and right, and can shoot projectiles. The player starts with an ammo count of 20, and ammo reloads over time. 
 
 ## Controls
-1. Jump and Double Jump - W
+1. Jump / Double Jump / Glide (hold) - W
 2. Left - A
 3. Down - S
 4. Right - D
