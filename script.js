@@ -337,7 +337,7 @@ window.addEventListener('load', function () {
             this.score = 0;
             this.winningScore = 50;
             this.gameTime = 0;
-            this.timeLimit = 500000000000000;
+            this.timeLimit = 50000000000000000000000000000000000000000;
 
         }
 
