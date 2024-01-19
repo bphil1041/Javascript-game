@@ -13,8 +13,13 @@ window.addEventListener('load', function () {
             this.isJumping = false;
 
             window.addEventListener('keydown', e => {
-                if (e.key === 'w' && !this.isJumping) {
-                    this.handleJump();
+                if (e.key === 'w') {
+                    if (!this.isJumping) {
+                        this.handleJump();
+                    } else {
+                        // If 'W' is pressed again while jumping, decrease gravity
+                        this.handleDecreaseGravity(true); // true indicates the 'W' key is pressed
+                    }
                 } else if (['s', 'a', 'd'].includes(e.key) && this.game.keys.indexOf(e.key) === -1) {
                     this.game.keys.push(e.key);
                 }
@@ -23,6 +28,8 @@ window.addEventListener('load', function () {
             window.addEventListener('keyup', e => {
                 if (e.key === 'w') {
                     this.isJumping = false;
+                    // Restore original player gravity when 'W' key is released
+                    this.handleRestoreGravity();
                 } else if (this.game.keys.indexOf(e.key) > -1) {
                     this.game.keys.splice(this.game.keys.indexOf(e.key), 1);
                 }
@@ -85,7 +92,24 @@ window.addEventListener('load', function () {
                 }
             }
         }
+
+        handleDecreaseGravity(wKeyPressed) {
+            // Adjust gravity based on whether the 'W' key is pressed
+            if (wKeyPressed) {
+                // Set a very slow fall gravity when 'W' is pressed
+                this.game.player.gravity = 0.05; // You can adjust this value as needed
+            } else {
+                // Set the normal gravity when 'W' key is released
+                this.game.player.gravity = 0.2; // Original gravity value
+            }
+        }
+
+        handleRestoreGravity() {
+            // Restore original player gravity when 'W' key is released
+            this.game.player.gravity = 0.2; // Set it back to the original value
+        }
     }
+
 
 
 
@@ -138,7 +162,7 @@ window.addEventListener('load', function () {
             this.isJumping = false;
             this.jumpHeight = -10;
             this.aimDirection = 0;
-            this.maxJumps = 1;
+            this.maxJumps = 9;
             this.remainingJumps = this.maxJumps; // New property for double jump
         }
 
@@ -313,7 +337,7 @@ window.addEventListener('load', function () {
             this.score = 0;
             this.winningScore = 50;
             this.gameTime = 0;
-            this.timeLimit = 5000;
+            this.timeLimit = 500000000000000;
 
         }
 
