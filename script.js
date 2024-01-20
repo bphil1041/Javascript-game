@@ -11,15 +11,17 @@ window.addEventListener('load', function () {
             this.game.isFiring = false;
             this.continuousFireInterval = null;
             this.isJumping = false;
+            this.cannonMode = false; // New property to track cannon mode
 
             window.addEventListener('keydown', e => {
                 if (e.key === 'w') {
                     if (!this.isJumping) {
                         this.handleJump();
                     } else {
-                        // If 'W' is pressed again while jumping, decrease gravity
-                        this.handleDecreaseGravity(true); // true indicates the 'W' key is pressed
+                        this.handleDecreaseGravity(true);
                     }
+                } else if (e.key === '1') {
+                    this.toggleCannonMode();
                 } else if (['s', 'a', 'd'].includes(e.key) && this.game.keys.indexOf(e.key) === -1) {
                     this.game.keys.push(e.key);
                 }
@@ -28,7 +30,6 @@ window.addEventListener('load', function () {
             window.addEventListener('keyup', e => {
                 if (e.key === 'w') {
                     this.isJumping = false;
-                    // Restore original player gravity when 'W' key is released
                     this.handleRestoreGravity();
                 } else if (this.game.keys.indexOf(e.key) > -1) {
                     this.game.keys.splice(this.game.keys.indexOf(e.key), 1);
@@ -38,46 +39,59 @@ window.addEventListener('load', function () {
             window.addEventListener('mousedown', e => {
                 this.game.isFiring = true;
                 this.fireProjectiles(e.clientX, e.clientY);
-                // Start continuous firing
                 this.continuousFire();
             });
 
             window.addEventListener('mouseup', () => {
                 this.game.isFiring = false;
-                // Stop continuous firing
                 clearInterval(this.continuousFireInterval);
             });
 
             window.addEventListener('mousemove', e => {
                 this.game.player.updateAim(e.clientX, e.clientY);
-                this.game.input.mouseX = e.clientX; // Update mouseX in the game input
-                this.game.input.mouseY = e.clientY; // Update mouseY in the game input
+                this.game.input.mouseX = e.clientX;
+                this.game.input.mouseY = e.clientY;
             });
         }
 
         fireProjectiles(mouseX, mouseY) {
-            if (this.game.ammo > 0 && this.game.isFiring) {
-                const projectileSpeed = 15;
-                const canvasRect = canvas.getBoundingClientRect();
-                const adjustedMouseX = mouseX - canvasRect.left;
-                const adjustedMouseY = mouseY - canvasRect.top - this.game.player.height / 2;
+            const numProjectiles = this.cannonMode ? 3 : 1;
 
-                const angle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
-                this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 2, this.game.player.y + this.game.player.height / 2, angle, projectileSpeed));
-                this.game.ammo--;
+            for (let i = 0; i < numProjectiles; i++) {
+                if (this.game.ammo > 0 && this.game.isFiring) {
+                    const projectileSpeed = 15;
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const adjustedMouseX = mouseX - canvasRect.left;
+                    const adjustedMouseY = mouseY - canvasRect.top - this.game.player.height / 2;
 
-                // Reset double jump count when player fires while on the ground
-                if (this.game.player.y >= canvas.height - this.game.player.height) {
-                    this.game.player.remainingJumps = this.game.player.maxJumps;
+                    let angle = Math.atan2(adjustedMouseY - this.game.player.y, adjustedMouseX - this.game.player.x);
+
+                    if (this.cannonMode) {
+                        // Apply angle offset only in cannon mode
+                        const angleOffset = (i - 1) * 0.2;  // Adjust the offset as needed
+                        angle += angleOffset;
+                    }
+
+                    this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 2, this.game.player.y + this.game.player.height / 2, angle, projectileSpeed));
+                    this.game.ammo--;
+
+                    if (this.game.player.y >= canvas.height - this.game.player.height) {
+                        this.game.player.remainingJumps = this.game.player.maxJumps;
+                    }
                 }
             }
         }
 
+
+
         continuousFire() {
+            // Clear any existing continuous fire interval
+            clearInterval(this.continuousFireInterval);
+
             // Continuous firing at a fixed rate
             this.continuousFireInterval = setInterval(() => {
                 this.fireProjectiles(this.game.input.mouseX, this.game.input.mouseY);
-            }, 50); // Adjust the firing rate if needed
+            }, this.cannonMode ? 30 : 50);  // Adjust firing rate for cannon mode
         }
 
         handleJump() {
@@ -86,7 +100,6 @@ window.addEventListener('load', function () {
                 this.isJumping = true;
                 this.game.player.remainingJumps--;
 
-                // Reset double jump count when player is on the ground
                 if (this.game.player.y >= canvas.height - this.game.player.height) {
                     this.game.player.remainingJumps = this.game.player.maxJumps;
                 }
@@ -94,19 +107,33 @@ window.addEventListener('load', function () {
         }
 
         handleDecreaseGravity(wKeyPressed) {
-            // Adjust gravity based on whether the 'W' key is pressed
             if (wKeyPressed) {
-                // Set a very slow fall gravity when 'W' is pressed
-                this.game.player.gravity = 0.05; // You can adjust this value as needed
+                this.game.player.gravity = 0.05;
             } else {
-                // Set the normal gravity when 'W' key is released
-                this.game.player.gravity = 0.2; // Original gravity value
+                this.game.player.gravity = 0.2;
             }
         }
 
         handleRestoreGravity() {
-            // Restore original player gravity when 'W' key is released
-            this.game.player.gravity = 0.2; // Set it back to the original value
+            this.game.player.gravity = 0.2;
+        }
+
+        toggleCannonMode() {
+            this.cannonMode = !this.cannonMode;
+            if (this.cannonMode) {
+                this.displayCannonModeMessage(true);
+            } else {
+                this.displayCannonModeMessage(false);
+            }
+        }
+
+        displayCannonModeMessage(active) {
+            const cannonModeMessage = document.getElementById('cannonModeMessage');
+            if (active) {
+                cannonModeMessage.innerText = 'Cannon Mode Active';
+            } else {
+                cannonModeMessage.innerText = '';
+            }
         }
     }
 
@@ -332,7 +359,7 @@ window.addEventListener('load', function () {
             this.ammo = 50;
             this.maxAmmo = 100;
             this.ammoTimer = 0;
-            this.ammoInterval = 150;
+            this.ammoInterval = 25;
             this.gameOver = false;
             this.score = 0;
             this.winningScore = 50;
