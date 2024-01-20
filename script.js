@@ -258,13 +258,14 @@ window.addEventListener('load', function () {
 
 
 
+
     class Enemy {
         constructor(game) {
             this.game = game;
             this.x = this.game.width;
             this.speedX = Math.random() * -1.5 - 0.5;
             this.markedForDeletion = false;
-            this.lives = 5;
+            this.lives = 10;
             this.score = this.lives;
         }
 
@@ -288,8 +289,54 @@ window.addEventListener('load', function () {
             this.width = 228 * 0.2;
             this.height = 169 * 0.2;
             this.y = Math.random() * (this.game.height * 0.9 - this.height);
+            this.projectiles = [];
+            this.fireRate = 2000; // Time interval between shots in milliseconds
+            this.lastFireTime = 0;
+        }
+
+        update() {
+            super.update();
+
+            // Check if it's time to fire a projectile
+            const currentTime = Date.now();
+            if (currentTime - this.lastFireTime > this.fireRate) {
+                this.fireProjectile();
+                this.lastFireTime = currentTime;
+            }
+
+            // Update projectiles
+            this.projectiles.forEach(projectile => {
+                projectile.update();
+                if (this.game.checkCollision(projectile, this.game.player)) {
+                    projectile.markedForDeletion = true;
+                    // Handle damage to the player if needed
+                    // Example: this.game.player.takeDamage();
+                }
+            });
+
+            // Remove projectiles marked for deletion
+            this.projectiles = this.projectiles.filter(projectile => !projectile.markedForDeletion);
+        }
+
+        draw(context) {
+            super.draw(context);
+
+            // Render projectiles
+            this.projectiles.forEach(projectile => {
+                projectile.draw(context);
+            });
+        }
+
+        fireProjectile() {
+            const projectileSpeed = 5; // Adjust the speed as needed
+            const angle = Math.atan2(this.game.player.y - this.y, this.game.player.x - this.x);
+            const offsetX = this.width / 2;
+            const offsetY = this.height / 2;
+
+            this.projectiles.push(new Projectile(this.game, this.x + offsetX, this.y + offsetY, angle, projectileSpeed));
         }
     }
+
     class Layer {
         constructor(game, image, speedModifier) {
             this.game = game;
@@ -319,9 +366,9 @@ window.addEventListener('load', function () {
             this.image1 = document.getElementById('layer1');
             this.image2 = document.getElementById('layer2');
             this.image3 = document.getElementById('layer3');
-            this.layer1 = new Layer(this.game, this.image1, .2);
-            this.layer2 = new Layer(this.game, this.image2, 1);
-            this.layer3 = new Layer(this.game, this.image3, 2);
+            this.layer1 = new Layer(this.game, this.image1, 0.1);
+            this.layer2 = new Layer(this.game, this.image2, 0.9);
+            this.layer3 = new Layer(this.game, this.image3, 1.5);
             this.layers = [this.layer1, this.layer2, this.layer3];
         }
         update() {
@@ -402,7 +449,7 @@ window.addEventListener('load', function () {
             this.ammoInterval = 25;
             this.gameOver = false;
             this.score = 0;
-            this.winningScore = 50;
+            this.winningScore = 500;
             this.gameTime = 0;
             this.timeLimit = 50000000000000000000000000000000000000000;
             this.speed = 1;
