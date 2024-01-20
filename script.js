@@ -332,7 +332,7 @@ window.addEventListener('load', function () {
             this.ammo = 50;
             this.maxAmmo = 100;
             this.ammoTimer = 0;
-            this.ammoInterval = 200;
+            this.ammoInterval = 150;
             this.gameOver = false;
             this.score = 0;
             this.winningScore = 50;
@@ -362,9 +362,10 @@ window.addEventListener('load', function () {
                         projectile.markedForDeletion = true;
                         if (enemy.lives <= 0) {
                             enemy.markedForDeletion = true;
-                            if (this.gameOver) this.score += enemy.score;
+                            this.score += enemy.score;  // Remove the this.gameOver check
                             if (this.score > this.winningScore) this.gameOver = true;
                         }
+
                     }
                 });
             });
