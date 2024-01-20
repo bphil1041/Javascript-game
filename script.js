@@ -189,7 +189,7 @@ window.addEventListener('load', function () {
             this.isJumping = false;
             this.jumpHeight = -10;
             this.aimDirection = 0;
-            this.maxJumps = 9;
+            this.maxJumps = Infinity;
             this.remainingJumps = this.maxJumps; // New property for double jump
         }
 
