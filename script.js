@@ -2,8 +2,8 @@ window.addEventListener('load', function () {
     // Canvas setup
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
-    canvas.width = 1500;
-    canvas.height = 750;
+    canvas.width = 2000;
+    canvas.height = 900;
 
     class InputHandler {
         constructor(game) {
@@ -257,6 +257,7 @@ window.addEventListener('load', function () {
 
 
 
+
     class Enemy {
         constructor(game) {
             this.game = game;
@@ -280,7 +281,7 @@ window.addEventListener('load', function () {
             context.fillText(this.lives, this.x, this.y);
         }
     }
-
+    1
     class Angler1 extends Enemy {
         constructor(game) {
             super(game);
