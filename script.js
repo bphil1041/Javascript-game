@@ -289,10 +289,48 @@ window.addEventListener('load', function () {
             this.y = Math.random() * (this.game.height * 0.9 - this.height);
         }
     }
+    class Layer {
+        constructor(game, image, speedModifier) {
+            this.game = game;
+            this.image = image;
+            this.speedModifier = speedModifier;
+            this.width = game.width;  // Set width to match the canvas width
+            this.height = game.height; // Set height to match the canvas height
+            this.x = 0;
+            this.y = 0;
+        }
 
-    class Layer { }
+        update() {
+            if (this.x <= -this.width) this.x = 0;
+            this.x -= this.game.speed * this.speedModifier;
+        }
 
-    class Background { }
+        draw(context) {
+            context.drawImage(this.image, this.x, this.y, this.width, this.height);  // Draw with specified width and height
+            context.drawImage(this.image, this.x + this.width, this.y, this.width, this.height);
+        }
+
+    }
+
+    class Background {
+        constructor(game) {
+            this.game = game;
+            this.image1 = document.getElementById('layer1');
+            this.image2 = document.getElementById('layer2');
+            this.image3 = document.getElementById('layer3');
+            this.layer1 = new Layer(this.game, this.image1, .2);
+            this.layer2 = new Layer(this.game, this.image2, 1);
+            this.layer3 = new Layer(this.game, this.image3, 2);
+            this.layers = [this.layer1, this.layer2, this.layer3];
+        }
+        update() {
+            this.layers.forEach(layer => layer.update());
+
+        }
+        draw(context) {
+            this.layers.forEach(layer => layer.draw(context));
+        }
+    }
 
     class UI {
         constructor(game) {
@@ -349,6 +387,7 @@ window.addEventListener('load', function () {
         constructor(width, height) {
             this.width = width;
             this.height = height;
+            this.background = new Background(this);
             this.player = new Player(this);
             this.input = new InputHandler(this);
             this.ui = new UI(this);
@@ -365,12 +404,14 @@ window.addEventListener('load', function () {
             this.winningScore = 50;
             this.gameTime = 0;
             this.timeLimit = 50000000000000000000000000000000000000000;
+            this.speed = 1;
 
         }
 
         update(deltaTime) {
             if (!this.gameOver) this.gameTime += deltaTime;
             if (this.gameTime > this.timeLimit) this.gameOver = true;
+            this.background.update();
             this.player.update();
             if (this.ammoTimer > this.ammoInterval) {
                 if (this.ammo < this.maxAmmo) this.ammo++;
@@ -406,6 +447,7 @@ window.addEventListener('load', function () {
         }
 
         draw(context) {
+            this.background.draw(context);
             this.player.draw(context);
             this.ui.draw(context);
             this.enemies.forEach(enemy => {
