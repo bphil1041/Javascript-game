@@ -282,7 +282,34 @@ window.addEventListener('load', function () {
             context.fillText(this.lives, this.x, this.y);
         }
     }
-    1
+
+    class AnglerProjectile {
+        constructor(game, x, y, angle, speed) {
+            this.game = game;
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
+            this.width = 10;
+            this.height = 10;
+            this.speedX = Math.cos(angle) * speed;
+            this.speedY = Math.sin(angle) * speed;
+            this.markedForDeletion = false;
+        }
+
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x > this.game.width * 0.99 || this.y < 0 || this.y > this.game.height) {
+                this.markedForDeletion = true;
+            }
+        }
+
+        draw(context) {
+            context.fillStyle = '#00ff22';
+            context.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
     class Angler1 extends Enemy {
         constructor(game) {
             super(game);
@@ -333,9 +360,10 @@ window.addEventListener('load', function () {
             const offsetX = this.width / 2;
             const offsetY = this.height / 2;
 
-            this.projectiles.push(new Projectile(this.game, this.x + offsetX, this.y + offsetY, angle, projectileSpeed));
+            this.projectiles.push(new AnglerProjectile(this.game, this.x + offsetX, this.y + offsetY, angle, projectileSpeed));
         }
     }
+
 
     class Layer {
         constructor(game, image, speedModifier) {
