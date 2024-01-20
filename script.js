@@ -394,9 +394,9 @@ window.addEventListener('load', function () {
             this.image1 = document.getElementById('layer1');
             this.image2 = document.getElementById('layer2');
             this.image3 = document.getElementById('layer3');
-            this.layer1 = new Layer(this.game, this.image1, 0.1);
-            this.layer2 = new Layer(this.game, this.image2, 0.9);
-            this.layer3 = new Layer(this.game, this.image3, 1.5);
+            this.layer1 = new Layer(this.game, this.image1, 0.15);
+            this.layer2 = new Layer(this.game, this.image2, 0.5);
+            this.layer3 = new Layer(this.game, this.image3, 1.3);
             this.layers = [this.layer1, this.layer2, this.layer3];
         }
         update() {
