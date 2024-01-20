@@ -180,7 +180,7 @@ window.addEventListener('load', function () {
             this.width = 96;
             this.height = 100;
             this.x = 64;
-            this.y = 64;
+            this.y = 64
             this.frameX = 0;
             this.frameY = 0;
             this.maxFrame = 7;
