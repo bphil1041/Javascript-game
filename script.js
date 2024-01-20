@@ -177,10 +177,13 @@ window.addEventListener('load', function () {
     class Player {
         constructor(game) {
             this.game = game;
-            this.width = 50;
-            this.height = 75;
-            this.x = 20;
+            this.width = 100;
+            this.height = 100;
+            this.x = 100;
             this.y = 100;
+            this.frameX = 0;
+            this.frameY = 0;
+            this.maxFrame = 7;
             this.speedX = 0;
             this.speedY = 0;
             this.maxSpeed = 4;
@@ -191,6 +194,9 @@ window.addEventListener('load', function () {
             this.aimDirection = 0;
             this.maxJumps = Infinity;
             this.remainingJumps = this.maxJumps; // New property for double jump
+            this.image = document.getElementById('player');
+            this.animationCounter = 0;  // Counter for animation speed control
+            this.animationSpeed = 7;   // Adjust this value for slower or faster animation
         }
 
         update() {
@@ -234,11 +240,22 @@ window.addEventListener('load', function () {
                 projectile.update();
             });
             this.projectiles = this.projectiles.filter(projectile => !projectile.markedForDeletion);
+
+            // Sprite animation
+            this.animationCounter++;
+            if (this.animationCounter >= this.animationSpeed) {
+                if (this.frameX < this.maxFrame) {
+                    this.frameX++;
+                } else {
+                    this.frameX = 0;
+                }
+                this.animationCounter = 0;  // Reset the counter
+            }
         }
 
         draw(context) {
-            context.fillStyle = 'black';
-            context.fillRect(this.x, this.y, this.width, this.height);
+            //context.strokeRect(this.x, this.y, this.width, this.height);
+            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
 
             // Render projectiles
             this.projectiles.forEach(projectile => {
@@ -254,6 +271,7 @@ window.addEventListener('load', function () {
             this.remainingJumps = this.maxJumps;
         }
     }
+
 
 
 
