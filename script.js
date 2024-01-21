@@ -68,7 +68,7 @@ window.addEventListener('load', function () {
 
                     if (this.cannonMode) {
                         // Apply angle offset only in cannon mode
-                        const angleOffset = (i - 1) * 0.2;  // Adjust the offset as needed
+                        const angleOffset = (i - 1) * 0.1;  // Adjust the offset as needed
                         angle += angleOffset;
                     }
 
@@ -147,11 +147,12 @@ window.addEventListener('load', function () {
             this.x = x;
             this.y = y;
             this.angle = angle;
-            this.width = 50;
-            this.height = 10;
+            this.width = 100;
+            this.height = 75;
             this.speedX = Math.cos(angle) * speed;
             this.speedY = Math.sin(angle) * speed;
             this.markedForDeletion = false;
+            this.image = document.getElementById('firebolt');
         }
 
         update() {
@@ -163,14 +164,14 @@ window.addEventListener('load', function () {
         }
 
         draw(context) {
-            const gradient = context.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.width);
-            gradient.addColorStop(0, 'rgba(255, 165, 0, 1)');
-            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
-
-            context.fillStyle = gradient;
-            context.fillRect(this.x, this.y, this.width, this.height);
+            context.save();
+            context.translate(this.x, this.y);
+            context.rotate(this.angle);
+            context.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+            context.restore();
         }
     }
+
 
     class Particle { }
 
