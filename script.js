@@ -180,9 +180,9 @@ window.addEventListener('load', function () {
             this.width = 96;
             this.height = 100;
             this.x = 64;
-            this.y = 64
+            this.y = 64;
             this.frameX = 0;
-            this.frameY = 0;
+            this.frameY = 0; // Change to 0 initially
             this.maxFrame = 7;
             this.speedX = 0;
             this.speedY = 0;
@@ -194,6 +194,7 @@ window.addEventListener('load', function () {
             this.aimDirection = 0;
             this.maxJumps = Infinity;
             this.remainingJumps = this.maxJumps; // New property for double jump
+            this.facingLeft = false; // New property to track facing direction
             this.image = document.getElementById('player');
             this.animationCounter = 0;  // Counter for animation speed control
             this.animationSpeed = 7;   // Adjust this value for slower or faster animation
@@ -226,11 +227,11 @@ window.addEventListener('load', function () {
             this.y += this.speedY;
 
             // Ensure player stays within the canvas boundaries
-            this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
-            this.y = Math.max(0, Math.min(canvas.height - this.height, this.y));
+            this.x = Math.max(0, Math.min(this.game.canvas.width - this.width, this.x));
+            this.y = Math.max(0, Math.min(this.game.canvas.height - this.height, this.y));
 
             // Check if player is on the ground to allow jumping again
-            if (this.y >= canvas.height - this.height) {
+            if (this.y >= this.game.canvas.height - this.height) {
                 this.isJumping = false;
                 this.resetDoubleJump();
             }
@@ -251,11 +252,33 @@ window.addEventListener('load', function () {
                 }
                 this.animationCounter = 0;  // Reset the counter
             }
+
+            // Update facing direction and frameY for animation
+            this.updateFacingDirection();
         }
 
         draw(context) {
-            //context.strokeRect(this.x, this.y, this.width, this.height);
-            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
+            const flipHorizontal = this.facingLeft || this.game.keys.includes('a');
+
+            context.save();
+
+            if (flipHorizontal) {
+                context.scale(-1, 1);
+            }
+
+            context.drawImage(
+                this.image,
+                this.frameX * this.width,
+                this.frameY * this.height,
+                this.width,
+                this.height,
+                flipHorizontal ? -this.x - this.width : this.x,
+                this.y,
+                this.width,
+                this.height
+            );
+
+            context.restore();
 
             // Render projectiles
             this.projectiles.forEach(projectile => {
@@ -270,7 +293,21 @@ window.addEventListener('load', function () {
         resetDoubleJump() {
             this.remainingJumps = this.maxJumps;
         }
+
+        updateFacingDirection() {
+            // Update facing direction and frameY based on horizontal movement
+            if (this.game.keys.includes('a') || this.game.keys.includes('d')) {
+                this.facingLeft = this.game.keys.includes('a');
+                this.frameY = 1; // Set frameY to 1 for the second row of animation
+            } else {
+                this.frameY = 0; // Set frameY to 0 when not moving horizontally
+            }
+        }
     }
+
+
+
+
 
 
 
@@ -487,6 +524,7 @@ window.addEventListener('load', function () {
         constructor(width, height) {
             this.width = width;
             this.height = height;
+            this.canvas = document.getElementById('canvas1');
             this.background = new Background(this);
             this.player = new Player(this);
             this.input = new InputHandler(this);
