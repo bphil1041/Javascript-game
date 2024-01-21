@@ -72,7 +72,7 @@ window.addEventListener('load', function () {
                         angle += angleOffset;
                     }
 
-                    this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 2, this.game.player.y + this.game.player.height / 2, angle, projectileSpeed));
+                    this.game.player.projectiles.push(new Projectile(this.game, this.game.player.x + this.game.player.width / 1.5, this.game.player.y + this.game.player.height / 2.2, angle, projectileSpeed));
                     this.game.ammo--;
 
                     if (this.game.player.y >= canvas.height - this.game.player.height) {
