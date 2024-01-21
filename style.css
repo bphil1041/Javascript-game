@@ -27,6 +27,7 @@
 #layer1,
 #layer2,
 #layer3,
-#player {
+#player,
+#firebolt {
     display: none;
 }
