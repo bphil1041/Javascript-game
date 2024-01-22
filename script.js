@@ -108,7 +108,7 @@ window.addEventListener('load', function () {
 
         handleDecreaseGravity(wKeyPressed) {
             if (wKeyPressed) {
-                this.game.player.gravity = 0.05;
+                this.game.player.gravity = 0.025;
             } else {
                 this.game.player.gravity = 0.2;
             }
