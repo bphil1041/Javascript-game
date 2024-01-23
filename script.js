@@ -183,7 +183,7 @@ window.addEventListener('load', function () {
             this.x = 64;
             this.y = 64;
             this.frameX = 0;
-            this.frameY = 0;
+            this.frameY = 0; // Change to 0 initially
             this.maxFrame = 7;
             this.speedX = 0;
             this.speedY = 0;
@@ -194,15 +194,15 @@ window.addEventListener('load', function () {
             this.jumpHeight = -10;
             this.aimDirection = 0;
             this.maxJumps = Infinity;
-            this.remainingJumps = this.maxJumps;
-            this.facingLeft = false;
+            this.remainingJumps = this.maxJumps; // New property for double jump
+            this.facingLeft = false; // New property to track facing direction
             this.image = document.getElementById('player');
-            this.animationCounter = 0;
-            this.animationSpeed = 7;
-            this.lives = 50; // Added lives property
+            this.animationCounter = 0;  // Counter for animation speed control
+            this.animationSpeed = 7;   // Adjust this value for slower or faster animation
         }
 
         update() {
+            // Handle jumping mechanic
             if (this.game.keys.includes('w')) {
                 if (this.remainingJumps > 0 && !this.isJumping) {
                     this.speedY = this.jumpHeight;
@@ -211,8 +211,10 @@ window.addEventListener('load', function () {
                 }
             }
 
+            // Apply gravity
             this.speedY += this.gravity;
 
+            // Handle left/right movement
             if (this.game.keys.includes('a')) {
                 this.speedX = -this.maxSpeed;
             } else if (this.game.keys.includes('d')) {
@@ -221,27 +223,27 @@ window.addEventListener('load', function () {
                 this.speedX = 0;
             }
 
+            // Update player position
             this.x += this.speedX;
             this.y += this.speedY;
 
+            // Ensure player stays within the canvas boundaries
             this.x = Math.max(0, Math.min(this.game.canvas.width - this.width, this.x));
             this.y = Math.max(0, Math.min(this.game.canvas.height - this.height, this.y));
 
+            // Check if player is on the ground to allow jumping again
             if (this.y >= this.game.canvas.height - this.height) {
                 this.isJumping = false;
                 this.resetDoubleJump();
             }
 
+            // Update projectiles
             this.projectiles.forEach(projectile => {
                 projectile.update();
-                if (this.game.checkCollision(projectile, this.game.player)) {
-                    projectile.markedForDeletion = true;
-                    this.takeDamage();
-                }
             });
-
             this.projectiles = this.projectiles.filter(projectile => !projectile.markedForDeletion);
 
+            // Sprite animation
             this.animationCounter++;
             if (this.animationCounter >= this.animationSpeed) {
                 if (this.frameX < this.maxFrame) {
@@ -249,9 +251,10 @@ window.addEventListener('load', function () {
                 } else {
                     this.frameX = 0;
                 }
-                this.animationCounter = 0;
+                this.animationCounter = 0;  // Reset the counter
             }
 
+            // Update facing direction and frameY for animation
             this.updateFacingDirection();
         }
 
@@ -278,6 +281,7 @@ window.addEventListener('load', function () {
 
             context.restore();
 
+            // Render projectiles
             this.projectiles.forEach(projectile => {
                 projectile.draw(context);
             });
@@ -292,23 +296,15 @@ window.addEventListener('load', function () {
         }
 
         updateFacingDirection() {
+            // Update facing direction and frameY based on horizontal movement
             if (this.game.keys.includes('a') || this.game.keys.includes('d')) {
                 this.facingLeft = this.game.keys.includes('a');
-                this.frameY = 1;
+                this.frameY = 1; // Set frameY to 1 for the second row of animation
             } else {
-                this.frameY = 0;
-            }
-        }
-
-        takeDamage() {
-            this.lives--;
-
-            if (this.lives <= 0) {
-                this.game.gameOver = true;
+                this.frameY = 0; // Set frameY to 0 when not moving horizontally
             }
         }
     }
-
 
 
 
@@ -359,15 +355,8 @@ window.addEventListener('load', function () {
         update() {
             this.x += this.speedX;
             this.y += this.speedY;
-
             if (this.x > this.game.width * 0.99 || this.y < 0 || this.y > this.game.height) {
                 this.markedForDeletion = true;
-            }
-
-            // Check collision with player
-            if (this.game.checkCollision(this, this.game.player)) {
-                this.markedForDeletion = true;
-                this.game.player.takeDamage();
             }
         }
 
@@ -376,7 +365,6 @@ window.addEventListener('load', function () {
             context.fillRect(this.x, this.y, this.width, this.height);
         }
     }
-
 
     class Angler1 extends Enemy {
         constructor(game) {
