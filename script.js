@@ -24,6 +24,8 @@ window.addEventListener('load', function () {
                     this.toggleCannonMode();
                 } else if (['s', 'a', 'd'].includes(e.key) && this.game.keys.indexOf(e.key) === -1) {
                     this.game.keys.push(e.key);
+                } else if (e.key === '0') {
+                    this.game.debug = !this.game.debug;
                 }
             });
 
@@ -259,6 +261,7 @@ window.addEventListener('load', function () {
         }
 
         draw(context) {
+            if (this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
             const flipHorizontal = this.facingLeft || this.game.keys.includes('a');
 
             context.save();
@@ -544,6 +547,7 @@ window.addEventListener('load', function () {
             this.gameTime = 0;
             this.timeLimit = 50000000000000000000000000000000000000000;
             this.speed = 1;
+            this.debug = true;
 
         }
 
