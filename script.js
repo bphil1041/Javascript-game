@@ -181,7 +181,7 @@ window.addEventListener('load', function () {
         constructor(game) {
             this.game = game;
             this.width = 96;
-            this.height = 100;
+            this.height = 96;
             this.x = 64;
             this.y = 64;
             this.frameX = 0;
